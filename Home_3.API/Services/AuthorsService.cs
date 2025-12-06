@@ -9,13 +9,11 @@ public class AuthorsService : IAuthorsService
 {
     private readonly IAuthorsRepository _authorsRepository;
     private readonly IBooksRepository  _booksRepository;
-    private int _randomId;
 
     public AuthorsService(IAuthorsRepository authorsRepository, IBooksRepository booksRepository)
     {
         _authorsRepository = authorsRepository;
         _booksRepository = booksRepository;
-        _randomId = 1;
     }
 
     public async Task<IEnumerable<Author>> GetAll()
@@ -42,7 +40,6 @@ public class AuthorsService : IAuthorsService
 
         var author = new Author
         {
-            Id = GetNextId(),
             FirstName = dto.FirstName,
             LastName = dto.LastName,
             BirthdayDate = dto.BirthdayDate
@@ -81,11 +78,6 @@ public class AuthorsService : IAuthorsService
         }
 
         return $"Deleted author id:{deleted.Id}";
-    }
-
-    private int GetNextId()
-    {
-        return _randomId++;
     }
     
     public async Task<AuthorWithBooksDTO?> GetByIdWithBooks(int id)

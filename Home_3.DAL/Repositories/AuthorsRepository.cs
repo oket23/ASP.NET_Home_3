@@ -6,7 +6,12 @@ namespace Home_3.DAL.Repositories;
 public class AuthorsRepository : IAuthorsRepository
 {
     private readonly List<Author> _authors = new();
+    private int _randomId;
 
+    public AuthorsRepository()
+    {
+        _randomId = 1;
+    }
     public ValueTask<IEnumerable<Author>> GetAll()
     {
         return new ValueTask<IEnumerable<Author>>(_authors);
@@ -20,7 +25,9 @@ public class AuthorsRepository : IAuthorsRepository
 
     public ValueTask<Author> Create(Author author)
     {
+        author.Id = GetRandomId();
         _authors.Add(author);
+        
         return new ValueTask<Author>(author);
     }
 
@@ -51,5 +58,10 @@ public class AuthorsRepository : IAuthorsRepository
 
         _authors.Remove(authorToDelete);
         return new ValueTask<Author?>(authorToDelete);
+    }
+    
+    private int GetRandomId()
+    {
+        return _randomId++;
     }
 }
