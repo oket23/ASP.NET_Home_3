@@ -57,15 +57,11 @@ public class AuthorsService : IAuthorsService
             return null;
         }
 
-        var updated = new Author
-        {
-            Id = author.Id,
-            FirstName = dto.FirstName ?? author.FirstName,
-            LastName = dto.LastName ?? author.LastName,
-            BirthdayDate = dto.BirthdayDate ?? author.BirthdayDate
-        };
+        author.FirstName = dto.FirstName ?? author.FirstName;
+        author.LastName = dto.LastName ?? author.LastName;
+        author.BirthdayDate = dto.BirthdayDate ?? author.BirthdayDate;
 
-        return await _authorsRepository.Update(updated);
+        return await _authorsRepository.Update(author);
     }
 
     public async Task<string?> Delete(int id)

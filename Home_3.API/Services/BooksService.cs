@@ -30,11 +30,11 @@ public class BooksService : IBooksService
 
     public async Task<Book> Create(AddBookDTO addBookDto)
     {
-        if (!_validationService.IsValidAuthor(addBookDto.AuthorId))
+        if (!await _validationService.IsValidAuthor(addBookDto.AuthorId))
         {
             throw new ArgumentException("Author with given id does not exist.");
         }
-       
+   
         if (!_validationService.IsValidDescription(addBookDto.Description))
         {
             throw new ArgumentException("Description contains censored words or is invalid.");
@@ -45,44 +45,40 @@ public class BooksService : IBooksService
             Name = addBookDto.Name,
             PublicationYear = addBookDto.PublicationYear,
             AuthorId = addBookDto.AuthorId,
-            Description = addBookDto.Description,
+            Description = addBookDto.Description
         };
-        
+    
         return await _booksRepository.Create(book);
     }
 
     public async Task<Book?> Update(UpdateBookDTO updateBookDto)
     {
         var book = await _booksRepository.GetById(updateBookDto.Id);
-        
-        if (book == null)
+
+        if (book is null)
         {
             return null;
         }
-        
+
         var newAuthorId = updateBookDto.AuthorId ?? book.AuthorId;
         var newDescription = updateBookDto.Description ?? book.Description;
         
-        if (!_validationService.IsValidAuthor(newAuthorId))
+        if (!await _validationService.IsValidAuthor(newAuthorId))
         {
             throw new ArgumentException("Author with given id does not exist.");
         }
-        
+
         if (!_validationService.IsValidDescription(newDescription))
         {
             throw new ArgumentException("Description contains censored words or is invalid.");
         }
+        
+        book.Name = updateBookDto.Name ?? book.Name;
+        book.PublicationYear = updateBookDto.PublicationYear ?? book.PublicationYear;
+        book.AuthorId = newAuthorId;
+        book.Description = newDescription;
 
-        var updatedBook = new Book
-        {
-            Id = book.Id,
-            Name = updateBookDto.Name ?? book.Name,
-            PublicationYear = updateBookDto.PublicationYear ?? book.PublicationYear,
-            AuthorId = newAuthorId,
-            Description = newDescription,
-        };
-
-        return await _booksRepository.Update(updatedBook);
+        return await _booksRepository.Update(book);
     }
 
     public async Task<string?> Delete(int id)

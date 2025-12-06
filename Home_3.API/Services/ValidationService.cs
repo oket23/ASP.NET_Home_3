@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Home_3.BLL.interfaces.Repositories;
 using Home_3.BLL.interfaces.Services;
+using Home_3.BLL.Models;
 
 namespace Home_3.Services;
 
@@ -26,8 +27,8 @@ public class ValidationService : IValidationService
         return !_censoredWords.Any(censored => words.Contains(censored));
     }
 
-    public bool IsValidAuthor(int authorId)
+    public async Task<bool> IsValidAuthor(int authorId)
     {
-        return _authorsRepository.GetById(authorId) != null;
+        return await _authorsRepository.GetById(authorId) != null;
     }
 }

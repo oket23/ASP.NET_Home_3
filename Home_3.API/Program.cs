@@ -17,8 +17,16 @@ public class Program
         builder.Services.AddControllers();
         builder.Services.AddSwaggerGen();
 
-        builder.Services.AddSingleton<IAuthorsRepository, AuthorsRepository>();
-        builder.Services.AddSingleton<IBooksRepository, BooksRepository>();
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Services.AddSingleton<IAuthorsRepository, AuthorsRepository>();
+            builder.Services.AddSingleton<IBooksRepository, BooksRepository>();
+        }
+        else
+        {
+            builder.Services.AddScoped<IAuthorsRepository, AuthorsDBRepository>();
+            builder.Services.AddScoped<IBooksRepository, BooksDBRepository>();
+        }
         
         builder.Services.AddScoped<IAuthorsService, AuthorsService>();
         builder.Services.AddScoped<IBooksService, BooksService>();
@@ -28,11 +36,11 @@ public class Program
         builder.Services.AddDbContext<HomeContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
         
         var app = builder.Build();
-        
+        app.UseSwagger();
+        app.UseSwaggerUI();
         if (app.Environment.IsDevelopment())
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            
         }
         
         app.UseHttpsRedirection();
