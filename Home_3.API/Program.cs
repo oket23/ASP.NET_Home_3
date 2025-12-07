@@ -36,11 +36,11 @@ public class Program
         builder.Services.AddDbContext<HomeContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
         
         var app = builder.Build();
-        app.UseSwagger();
-        app.UseSwaggerUI();
+        
         if (app.Environment.IsDevelopment())
         {
-            
+            app.UseSwagger();
+            app.UseSwaggerUI();
         }
         
         app.UseHttpsRedirection();
@@ -48,8 +48,4 @@ public class Program
         app.Run();
     }
 }
-
-//TODO
-//1.Update readme
-//2.add database logic
 
