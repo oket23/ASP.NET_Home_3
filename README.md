@@ -1,139 +1,187 @@
-# Bookstore Management API
+# 📚 Bookstore Management API (EF Core Hybrid Edition)
 
-A REST API server built with ASP.NET Core for managing a bookstore's inventory and authors. This project implements CRUD operations, data validation, and relationships between entities.
+A structured, educational, and extensible ASP.NET Core Web API designed to manage books and authors.
 
-## 🚀 Technologies
+The project demonstrates essential enterprise practices such as layered architecture, Entity Framework Core integration, DTO-based communication, and a hybrid repository system that switches between In-Memory and SQL Server storage depending on the environment.
 
-* **Platform**: .NET 9
-* **Framework**: ASP.NET Core Web API
-* **Language**: C#
-* **Architecture**: N-Layer Architecture (Controller-Service-Repository)
-* **Dependency Injection**: Native DI Container
-* **Documentation**: Swagger UI
+## 🚀 Technologies Used
 
-## 📋 Features
+* **.NET 9**
+* **ASP.NET Core Web API**
+* **Entity Framework Core** (SQL Server)
+* **C# 12**
+* **Swagger / OpenAPI**
+* **Layered Architecture**: API → BLL (Services) → DAL (Repositories)
+* **Asynchronous Programming**: `async/await` and `ValueTask` where appropriate
 
-The API provides functionality to work with `Book` and `Author` entities. Data is stored in **In-Memory** storage (RAM), utilizing Repositories with Lists.
+## 📋 Features Overview
 
-### Key Capabilities:
-* **Books Management**: Create, Read, Update, and Delete books.
-* **Authors Management**: Create, Read, Update, and Delete authors.
-* **Relationships**: When retrieving an author by ID, the API also returns a list of all books written by them.
-* **Validation Logic**:
-    * **Censorship**: Book descriptions are validated to ensure they do not contain banned words (e.g., "the", "no").
-    * **Integrity**: When creating a book, the system verifies that the specified `AuthorId` exists.
-* **Architecture**: Clean separation of concerns using DTOs, Services, and Repositories.
+This API provides complete CRUD functionality for Books and Authors, including validation rules and environment-based repository selection.
+
+### ⭐ Key Features
+
+#### 1. Hybrid Repository Pattern
+The application dynamically selects the data storage approach:
+
+* **Development Mode (Debug):** Uses lightweight **in-memory repositories** (`List<T>`) for fast testing without database setup.
+* **Production Mode (Release):** Uses **Entity Framework Core with SQL Server**, enabling migrations, relational mapping, and persistent data.
+
+*Configured in `Program.cs`:*
+
+```csharp
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton<IAuthorsRepository, AuthorsRepository>();
+    builder.Services.AddSingleton<IBooksRepository, BooksRepository>();
+}
+else
+{
+    builder.Services.AddScoped<IAuthorsRepository, AuthorsDBRepository>();
+    builder.Services.AddScoped<IBooksRepository, BooksDBRepository>();
+}
+```
+#### 2. Books Management
+* Fetch all books / Fetch a book by ID
+* Create, Update, Delete a book
+* **Logic includes:**
+    * Validating author existence
+    * Validating description against banned words
+    * Clean separation between Controller → Service → Repository
+
+#### 3. Authors Management
+* Full CRUD operations
+* Fetching a single author with all associated books (`AuthorWithBooksDTO`)
+* Validation of author input
+
+#### 4. Validation Layer
+A dedicated `ValidationService` ensures:
+* Descriptions do not contain banned words.
+* Books reference existing authors.
+* Business rules remain isolated from data and controller layers.
+
+## 🧩 Project Structure
+
+```text
+Home_3.sln
+│
+├── Home_3.API        → Controllers, Services implementations, DI, Swagger
+├── Home_3.BLL        → DTOs, Models, Interfaces (Services/Repositories)
+└── Home_3.DAL        → EF Core DbContext, Repository implementations, Migrations
+```
+*This structure follows clean layering principles, ensuring maintainability and testability.*
 
 ## 🛠 Getting Started
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <your-repo-url>
-    ```
-2.  **Navigate to the project directory:**
-    ```bash
-    cd Home_2
-    ```
-3.  **Run the project:**
-    ```bash
-    dotnet run
-    ```
-4.  **Open Swagger Documentation:**
-    After starting the application, navigate to the following URL in your browser:
-    `http://localhost:5000/swagger` or `https://localhost:5001/swagger`
+### 1. Clone the repository
+```bash
+git clone [https://github.com/oket23/ASP.NET_Home_3](https://github.com/oket23/ASP.NET_Home_3)
+```
+### 2. Navigate to the project
+```bash
+cd ASP.NET_Home_3/Home_3.API
+```
+### 3. Install EF Core tools (if needed)
+```bash
+dotnet tool install --global dotnet-ef
+```
+## ▶️ Running the Application
 
-## 🔌 API Endpoints
+### Option A – Development Mode (In-memory storage)
+No database required. Data is stored in RAM.
+
+```bash
+dotnet run --environment "Development"
+```
+*Or simply run the app in **Debug** mode through Rider/Visual Studio.*
+
+### Option B – Production Mode (SQL + EF Core)
+First, apply migrations to create the database:
+
+```bash
+dotnet ef database update --project ../Home_3.DAL --startup-project .
+```
+Run the API:
+```bash
+dotnet run --environment "Production"
+```
+## ⚙️ Configuration (SQL Server)
+
+To run in Production mode, ensure your connection string is set in `Home_3.API/appsettings.json`:
+
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=localhost;Database=Home3DB;Trusted_Connection=True;TrustServerCertificate=True;"
+}
+```
+*You may use LocalDB, SQL Express, or a full SQL Server instance.*
+
+## 🔄 Database Migrations
+
+Since this project uses Entity Framework Core, you need to manage database schemas using migrations.
+
+**Apply existing migrations:**
+To create the database and tables for the first time:
+```bash
+dotnet ef database update --project Home_3.DAL --startup-project Home_3.API
+```
+**Add a new migration:**
+If you modify `Book` or `Author` models, create a new migration:
+```bash
+dotnet ef migrations add <MigrationName> --project Home_3.DAL --startup-project Home_3.API
+```
+*Replace `<MigrationName>` with a descriptive name, e.g., `AddBookGenre`.*
+
+Then, apply it to the database:
+```bash
+dotnet ef database update --project Home_3.DAL --startup-project Home_3.API
+```
+## 🧪 Testing
+
+### Swagger UI (Development Only)
+When running in `Development` mode, Swagger UI is available at:
+* `https://localhost:7069/swagger`
+* `http://localhost:5213/swagger`
+
+Use this interface to manually test endpoints without writing code.
+
+### Postman (Production)
+In `Production` mode, Swagger is disabled by default. Use [Postman](https://www.postman.com/) or `curl` to send requests to the API.
+
+## 📁 Endpoints Overview
 
 ### 📚 Books
 Base path: `/v1/books`
 
-#### 1. Get All Books
-Retrieves a list of all available books.
-* **URL**: `GET /v1/books`
-
-#### 2. Get Book by ID
-* **URL**: `GET /v1/books/{id}`
-* **Response 200**: Book object.
-* **Response 404**: If the book is not found.
-
-#### 3. Create Book
-Adds a new book to the store. Validates that the `authorId` exists and the `description` does not contain banned words.
-* **URL**: `POST /v1/books`
-* **Body (JSON)**:
-    ```json
-    {
-      "name": "The Great Gatsby",
-      "publicationYear": 1925,
-      "authorId": 1,
-      "description": "A story about the Jazz Age."
-    }
-    ```
-
-#### 4. Update Book
-Updates an existing book. Supports partial updates (nullable fields).
-* **URL**: `PUT /v1/books/{id}`
-* **Body (JSON)**:
-    ```json
-    {
-      "id": 1,
-      "name": "Updated Title",
-      "description": "New valid description"
-    }
-    ```
-
-#### 5. Delete Book
-* **URL**: `DELETE /v1/books/{id}`
-
----
+| Method | Route | Description |
+| :--- | :--- | :--- |
+| `GET` | `/v1/books` | Get all books (includes Author data) |
+| `GET` | `/v1/books/{id}` | Get book by ID |
+| `POST` | `/v1/books` | Create a new book |
+| `PUT` | `/v1/books/{id}` | Update an existing book |
+| `DELETE` | `/v1/books/{id}` | Delete a book |
 
 ### ✍️ Authors
 Base path: `/v1/authors`
 
-#### 1. Get All Authors
-Retrieves a list of all authors.
-* **URL**: `GET /v1/authors`
+| Method | Route | Description |
+| :--- | :--- | :--- |
+| `GET` | `/v1/authors` | Get all authors |
+| `GET` | `/v1/authors/{id}` | Get author by ID (includes list of their books) |
+| `POST` | `/v1/authors` | Create a new author |
+| `PUT` | `/v1/authors/{id}` | Update an author |
+| `DELETE` | `/v1/authors/{id}` | Delete an author |
 
-#### 2. Get Author by ID (With Books)
-Retrieves detailed information about an author, including a list of all books associated with them.
-* **URL**: `GET /v1/authors/{id}`
-* **Response Example**:
-    ```json
-    {
-      "id": 1,
-      "firstName": "F. Scott",
-      "lastName": "Fitzgerald",
-      "birthdayDate": "1896-09-24T00:00:00",
-      "books": [
-        {
-          "id": 1,
-          "name": "The Great Gatsby",
-          "publicationYear": 1925
-        }
-      ]
-    }
-    ```
+## 🎓 Educational Value
 
-#### 3. Create Author
-* **URL**: `POST /v1/authors`
-* **Body (JSON)**:
-    ```json
-    {
-      "firstName": "Stephen",
-      "lastName": "King",
-      "birthdayDate": "1947-09-21T00:00:00"
-    }
-    ```
+This project demonstrates:
+* **Clean Architecture**: Core/Domain logic is independent of Data Access.
+* **Entity Framework Core**: Code-First migrations, relationships (`Include`), and optimization (`AsNoTracking`).
+* **Hybrid Repository Pattern**: Strategy pattern implementation via Dependency Injection to swap between In-Memory and SQL storage.
+* **Async Programming**: Proper use of `async/await` and `ValueTask` for performance.
+* **Environment Configuration**: Handling `Development` vs `Production` settings.
 
-#### 4. Update Author
-* **URL**: `PUT /v1/authors/{id}`
-* **Body (JSON)**:
-    ```json
-    {
-      "id": 1,
-      "firstName": "Stephen",
-      "lastName": "Edwin King"
-    }
-    ```
+It is an excellent example for students transitioning from basic ASP.NET exercises to real-world architectural patterns.
 
-#### 5. Delete Author
-* **URL**: `DELETE /v1/authors/{id}`
+## 📜 License
+
+This project is intended for educational use. You may freely modify or extend it for your own learning.
